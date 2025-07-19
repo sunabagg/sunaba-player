@@ -1,0 +1,16 @@
+{
+    "name": "player",
+    "version": "1.0",
+    "type": "executable",
+    "rootUrl": "app://",
+    "scriptdir": "src",
+    "assetsdir": "assets",
+    "apisymbols": true,
+    "sourcemap": true,
+    "entrypoint": "Main",
+    "luabin": "main",
+    "libraries": [
+    ],
+    "compilerFlags": [
+    ]
+}
