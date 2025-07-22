@@ -49,7 +49,7 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "bin\windows-arm64-release-nsis\SunabaPlayerSetup.exe"
+OutFile "bin\windows-arm64-release-nsis\SunabaPlayerSetupArm64.exe"
 InstallDir "$LOCALAPPDATA\Programs\Sunaba\Player"
 InstallDirRegKey HKCU "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
