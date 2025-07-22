@@ -156,7 +156,7 @@ class Main {
         if (targetPlatform == "mac-universal") {
             targetName = "Sunaba Player.app";
         }
-        else if (targetPlatform == "windows-amd64") {
+        else if (targetPlatform == "windows-amd64" || targetPlatform == "windows-arm64") {
             targetName = "SunabaPlayer.exe";
         }
         else if (targetPlatform == "linux-amd64") {
