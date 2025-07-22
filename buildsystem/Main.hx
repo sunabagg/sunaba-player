@@ -221,6 +221,12 @@ class Main {
         if (exportType == ExportType.debug) {
             nsisScript = "setup-debug.nsi";
         }
+        if (targetPlatform == "windows-arm64") {
+            nsisScript = "setup-arm64.nsi";
+            if (exportType == ExportType.debug) {
+                nsisScript = "setup-debug-arm64.nsi";
+            }
+        }
 
         var command = nsisCommand + " " + nsisScript;
         trace("Running NSIS command: " + command);
