@@ -1,6 +1,15 @@
 package;
+
 import sys.FileSystem;
 import sys.io.File;
+import js.node.Http;
+import js.node.Https;
+import js.node.Url;
+import js.node.buffer.Buffer;
+import haxe.http.HttpNodeJs;
+import haxe.io.Bytes;
+import haxe.zip.Reader;
+import haxe.io.BytesInput;
 
 class Main {
     static var godotCommand = "godot";
@@ -39,6 +48,25 @@ class Main {
                 buildUnixUsrDir(usrPath);
                 return;
             }
+        }
+
+        if (args[0] == "update") {
+            var platform = "windows";
+            if (Sys.systemName() == "Mac") {
+                platform = "macOS";
+            }
+            else if (Sys.systemName() == "Linux") {
+                platform = "linux";
+            }
+            var arg1 = args[1];
+            if (arg1 != null) {
+                if (StringTools.startsWith(arg1, "--platform=")) {
+                    platform = StringTools.replace(args[1], "--platform=", "");
+                }
+            }
+
+            updateLibraries(platform);
+            return;
         }
 
         var currentDir = Sys.getCwd();
@@ -356,6 +384,205 @@ class Main {
             Sys.exit(-1);
         } else {
             Sys.println("DMG package created successfully at: " + dmgPath);
+        }
+    }
+
+    public static function downloadWithCustomHttp(url: String, onSuccess: Bytes -> Void, onError: String -> Void): Void {
+        //trace("Custom HTTP download from: " + url);
+        
+        var parsedUrl = new js.node.url.URL(url);
+        var secure = parsedUrl.protocol == "https:";
+        
+        var options = {
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port != null ? Std.parseInt(parsedUrl.port) : (secure ? 443 : 80),
+            path: parsedUrl.pathname + (parsedUrl.search != null ? parsedUrl.search : ""),
+            method: "GET"
+        };
+        
+        var req = if (secure) {
+            Https.request(options, function(res) {
+                handleHttpResponse(res, onSuccess, onError);
+            });
+        } else {
+            Http.request(options, function(res) {
+                handleHttpResponse(res, onSuccess, onError);
+            });
+        };
+        
+        req.on("error", function(err) {
+            onError("Request error: " + err);
+        });
+        
+        req.end();
+    }
+    
+    public static function handleHttpResponse(res: Dynamic, onSuccess: Bytes -> Void, onError: String -> Void): Void {
+        //trace("Custom HTTP Status: " + res.statusCode);
+        
+        var data: Array<Buffer> = [];
+        
+        res.on("data", function(chunk: Buffer) {
+            data.push(chunk);
+        });
+        
+        res.on("end", function() {
+            var buffer = data.length == 1 ? data[0] : Buffer.concat(data);
+            var arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+            var bytes = haxe.io.Bytes.ofData(arrayBuffer);
+            
+            //trace("Custom HTTP received " + bytes.length + " bytes");
+            onSuccess(bytes);
+        });
+        
+        res.on("error", function(err) {
+            onError("Network error: " + err);
+        });
+    }
+
+    public static function createTolerantHttpRequest(url: String, onSuccess: Bytes -> Void, onError: String -> Void): Void {
+        var http = new HttpNodeJs(url);
+        var hasReceived = false;
+        
+        http.onBytes = function(data: Bytes) {
+            hasReceived = true;
+            onSuccess(data);
+        };
+        
+        http.onError = function(error: String) {
+            // Only report error if we haven't received any data
+            if (!hasReceived) {
+                onError(error);
+            }
+        };
+        
+        http.onStatus = function(status) {
+            //trace("HTTP Status for " + url + ": " + status);
+        };
+        
+        http.request();
+    }
+
+    public static function updateLibraries(platform: String) {
+        var debugLibUrl = LibUrl.linuxDebug;
+        var releaseLibUrl = LibUrl.linuxRelease;
+        if (platform == "windows") {
+            debugLibUrl = LibUrl.windowsDebug;
+            releaseLibUrl = LibUrl.windowsRelease;
+        }
+        else if (platform == "macOS") {
+            debugLibUrl = LibUrl.macDebug;
+            releaseLibUrl = LibUrl.macRelease;
+        }
+        else if (platform == "linux") {
+            debugLibUrl = LibUrl.linuxDebug;
+            releaseLibUrl = LibUrl.linuxRelease;
+        }
+        else {
+            return;
+        }
+
+        trace("Downloading: " + debugLibUrl);
+        trace("Downloading: " + releaseLibUrl);
+
+        var debugHttp = new HttpNodeJs(debugLibUrl);
+        debugHttp.onError = function(error) {
+            Sys.println("Error downloading debug libraries: " + error);
+            Sys.exit(1);
+        }
+
+        var releaseHttp = new HttpNodeJs(releaseLibUrl);
+        releaseHttp.onError = function(error) {
+            Sys.println("Error downloading release libraries: " + error);
+            Sys.exit(1);
+        }
+
+        debugHttp.onBytes = function(data:Bytes) {
+            //trace("Debug archive size: " + data.length);
+            // Check if this is an empty response due to redirect
+            if (data.length == 0 && debugHttp.responseHeaders != null) {
+                var location = debugHttp.responseHeaders.get("location");
+                if (location != null) {
+                    //trace("Debug redirect to: " + location);
+                    downloadWithCustomHttp(location, 
+                        function(redirectData:Bytes) {
+                            //trace("Debug redirected archive size: " + redirectData.length);
+                            extractArchive(redirectData, debugLibUrl);
+                        },
+                        function(error:String) {
+                            Sys.println("Error downloading debug libraries (redirect): " + error);
+                            Sys.exit(1);
+                        }
+                    );
+                    return;
+                }
+            }
+            extractArchive(data, debugLibUrl);
+        };
+        releaseHttp.onBytes = function(data:Bytes) {
+            //trace("Release archive size: " + data.length);
+            // Check if this is an empty response due to redirect
+            if (data.length == 0 && releaseHttp.responseHeaders != null) {
+                var location = releaseHttp.responseHeaders.get("location");
+                if (location != null) {
+                    //trace("Release redirect to: " + location);
+                    downloadWithCustomHttp(location,
+                        function(redirectData:Bytes) {
+                            //trace("Release redirected archive size: " + redirectData.length);
+                            extractArchive(redirectData, releaseLibUrl);
+                        },
+                        function(error:String) {
+                            Sys.println("Error downloading release libraries (redirect): " + error);
+                            Sys.exit(1);
+                        }
+                    );
+                    return;
+                }
+            }
+            extractArchive(data, releaseLibUrl);
+        };
+
+        debugHttp.onStatus = function(status) {
+            trace("Debug HTTP Status: " + status);
+        };
+        releaseHttp.onStatus = function(status) {
+            trace("Release HTTP Status: " + status);
+        };
+
+        debugHttp.request();
+        releaseHttp.request();
+    }
+
+    public static function extractArchive(bytes: Bytes, url: String) {
+        if (bytes.length == 0) {
+            trace("Download failed: empty archive");
+            return;
+        }
+        var cwd = Sys.getCwd();
+        if (StringTools.endsWith(url, ".zip")) {
+            var input = new BytesInput(bytes);
+            var entries = Reader.readZip(input);
+            for (entry in entries) {
+                if (!StringTools.startsWith(entry.fileName, "lib/")) {
+                    continue;
+                }
+                var entryPath = cwd + "/template/" + entry.fileName;
+                if (StringTools.endsWith(entryPath, "/")) {
+                    if (!FileSystem.exists(entryPath)) {
+                        Sys.println("Creating Directory: " + entryPath);
+                        FileSystem.createDirectory(entryPath);
+                    }
+                    continue;
+                }
+                Sys.println("Updating File: " + entryPath);
+                var entryBytes = entry.data;
+                File.saveBytes(entryPath, entryBytes);
+            }
+        } else if (StringTools.endsWith(url, ".tar.gz")) {
+            // Add tar.gz extraction logic here
+            trace("Extracting tar.gz not implemented");
+        } else {
+            trace("Unknown archive format");
         }
     }
 }
