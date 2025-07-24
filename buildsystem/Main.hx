@@ -609,17 +609,27 @@ class Main {
         if (StringTools.endsWith(url, ".zip")) {
             var input = new BytesInput(bytes);
             var entries = Reader.readZip(input);
+            if (!FileSystem.exists(cwd + "/template/lib/")) {
+                FileSystem.createDirectory(cwd + "/template/lib/");
+            }
             for (entry in entries) {
                 if (!StringTools.startsWith(entry.fileName, "lib/")) {
                     continue;
                 }
                 var entryPath = cwd + "/template/" + entry.fileName;
-                if (StringTools.endsWith(entryPath, "/")) {
-                    if (!FileSystem.exists(entryPath)) {
-                        Sys.println("Creating Directory: " + entryPath);
-                        FileSystem.createDirectory(entryPath);
-                    }
+                if (StringTools.contains(entryPath, "\\")) {
+                    entryPath = StringTools.replace(entryPath, "\\", "/");
+                }
+                if (StringTools.endsWith(entryPath, "/") || StringTools.endsWith(entryPath, "\\") || !StringTools.contains(entryPath, ".")) {
+                    Sys.println("Creating Directory: " + entryPath);
+                    FileSystem.createDirectory(entryPath);
                     continue;
+                }
+                var stringArray = entryPath.split("/");
+                var baseDir: String = "";
+                for (i in 0...stringArray.length - 1) {
+                    baseDir += stringArray[i] + "/";
+                    checkDir(baseDir);
                 }
                 Sys.println("Updating File: " + entryPath);
                 var entryBytes = entry.data;
@@ -630,6 +640,13 @@ class Main {
             trace("Extracting tar.gz not implemented");
         } else {
             trace("Unknown archive format");
+        }
+    }
+
+    public static function checkDir(path: String) {
+        if (!FileSystem.exists(path)) {
+            Sys.println("Creating Directory: " + path);
+            FileSystem.createDirectory(path);
         }
     }
 }
