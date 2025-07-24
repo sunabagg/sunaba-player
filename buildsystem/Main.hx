@@ -105,6 +105,9 @@ class Main {
                     else if (format == "dmg") {
                         packageFormat = PackageFormat.dmg;
                     }
+                    else if (format == "zip") {
+                        packageFormat = PackageFormat.zip;
+                    }
                     else {
                         Sys.println("Unknown package format: " + format);
                         Sys.exit(-1);
@@ -125,6 +128,9 @@ class Main {
                     }
                     else if (format == "dmg") {
                         packageFormat = PackageFormat.dmg;
+                    }
+                    else if (format == "zip") {
+                        packageFormat = PackageFormat.zip;
                     }
                     else {
                         Sys.println("Unknown package format: " + format);
@@ -161,6 +167,10 @@ class Main {
         else if (packageFormat == PackageFormat.dmg) {
             exportDmg();
         }
+        else if (packageFormat == PackageFormat.zip) {
+            exportZip();
+        }
+
     }
 
     public static function run() {
@@ -385,6 +395,43 @@ class Main {
         } else {
             Sys.println("DMG package created successfully at: " + dmgPath);
         }
+    }
+
+    public static function exportZip() {
+        var zipPath = Sys.getCwd() + "bin/" + targetPlatform + "-" + exportType + ".zip";
+        var binPath = Sys.getCwd() + "bin/" + targetPlatform + "-" + exportType + "/";
+        if (!FileSystem.exists(binPath)) {
+            Sys.println("Export directory does not exist: " + binPath);
+            Sys.exit(-1);
+        }
+        var output = new haxe.io.BytesOutput();
+        var zipWriter = new haxe.zip.Writer(output);
+        var entries:haxe.ds.List<haxe.zip.Entry> = new haxe.ds.List();
+        for (file in FileSystem.readDirectory(binPath)) {
+            if (FileSystem.isDirectory(file)) {
+                continue; // Skip directories
+            }
+            var relativePath = StringTools.replace(file, binPath, "");
+            var fileBytes = File.getBytes(binPath + file);
+            if (fileBytes == null) {
+                Sys.println("Failed to read file: " + file);
+                continue;
+            }
+            var entry:haxe.zip.Entry = {
+                fileName: relativePath,
+                fileSize: fileBytes.length,
+                fileTime: Date.now(),
+                dataSize: fileBytes.length,
+                data: fileBytes,
+                crc32: null,
+                compressed: false,
+                extraFields: null
+            };
+            entries.push(entry);
+        }
+        zipWriter.write(entries);
+        var zipBytes = output.getBytes();
+        File.saveBytes(zipPath, zipBytes);
     }
 
     public static function downloadWithCustomHttp(url: String, onSuccess: Bytes -> Void, onError: String -> Void): Void {
