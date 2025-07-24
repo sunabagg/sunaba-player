@@ -1,0 +1,98 @@
+name: Build
+on:
+  push:
+    paths-ignore:
+      - '.gitignore'
+      - '*.md'
+  
+  schedule:
+    - cron: '0 9 * * *' # run at 9 AM UTC/ 1 AM AKDT
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: ['debug', 'release']
+        config:
+          - { name: '🍏 macOS', target: mac-universal, os: macos-latest, pkgformat: dmg }
+          - { name: '🐧 Linux', target: linux-amd64, os: ubuntu-latest, pkgformat: deb }
+          - { name: '🪟 Windows', target: windows-amd64, os: ubuntu-latest, pkgformat: nsis }
+
+    name: 🛠 Build / ${{ matrix.config.name }} (${{ matrix.build_type }})
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Setup Godot
+        uses: lihop/setup-godot@v2
+        with:
+          # Godot version to download
+          version: 4.4.1-stable
+          export-templates: true
+      
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 19
+      
+      - name: Install Dependencies (macOS)
+        if: matrix.config.os == 'macos-latest'
+        run: brew install haxe
+
+      - name: Install Dependencies (Linux)
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y haxe nsis dpkg-dev
+
+      - name: Setup Haxelib
+        run: |
+          haxelib setup ${{ github.workspace }}/.hxlib
+
+      - name: Install Haxelib Dependencies
+        run: |
+          haxelib install hxnodejs
+          haxelib git tsukuru https://github.com/sunabagg/tsukuru.git
+          haxelib git sunaba https://github.com/sunabagg/sunaba.git
+
+      - name: Update Shared Libraries
+        run: |
+          ${{ github.workspace }}/build.sh update
+
+      - name: Update Shared Libraries (Windows Target)
+        if: matrix.config.target == 'windows-amd64'
+        run: |
+          ${{ github.workspace }}/build.sh update --platform=windows
+
+      - name: Build Project
+        run: |
+          ${{ github.workspace }}/build.sh export --${{ matrix.build_type }} --target=${{ matrix.config.target }} --pkgformat=${{ matrix.config.pkgformat }}
+      
+      - name: Build Project (Zip)
+        if: matrix.config.os != 'macos-latest'
+        run: |
+          ${{ github.workspace }}/build.sh export --${{ matrix.build_type }} --target=${{ matrix.config.target }} --pkgformat=zip
+      
+      - name: Upload artifact
+        if: matrix.config.os != 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.config.target }}-${{ matrix.build_type }}
+          path: |
+            ${{ github.workspace }}/bin/*
+      
+      - name: Upload macOS artifact
+        if: matrix.config.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.config.target }}-${{ matrix.build_type }}
+          path: |
+            ${{ github.workspace }}/bin/*.dmg
