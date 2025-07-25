@@ -320,7 +320,7 @@ class Main {
             Sys.println("dpkg-deb failed at " + result);
         }
 
-        var debOutputPath = cwd + "bin/" + targetPlatform + "-" + exportType + "-deb/";
+        var debOutputPath = cwd + "bin/";
         if (!FileSystem.exists(debOutputPath)) {
             FileSystem.createDirectory(debOutputPath);
         }
