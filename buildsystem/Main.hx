@@ -249,11 +249,7 @@ class Main {
             }
         }
 
-        var outputInstallerPath = Sys.getCwd() + "bin/" + targetPlatform + "-" + exportType + "-nsis/SunabaPlayerInstaller.exe";
-
-        if (!FileSystem.exists(Sys.getCwd() + "/bin/" + targetPlatform + "-" + exportType + "-nsis")) {
-            FileSystem.createDirectory(Sys.getCwd() + "/bin/" + targetPlatform + "-" + exportType + "-nsis");
-        }
+        var outputInstallerPath = Sys.getCwd() + "bin/SunabaPlayerInstaller.exe";
 
         var nsisScript = "setup.nsi";
         if (exportType == ExportType.debug) {
