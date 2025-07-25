@@ -366,6 +366,7 @@ class Main {
 
         var executableName = "sunaba-player";
         File.copy(exportPath + executableName, binPath + executableName);
+        File.copy(cwd + "sunaba", binPath + "sunaba");
 
         var libraryName = "libsunaba.so";
         if (exportType == ExportType.debug) {
