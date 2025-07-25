@@ -66,6 +66,11 @@ jobs:
       - name: Update Shared Libraries
         run: |
           ${{ github.workspace }}/build.sh update
+      
+      - name: Mark Sunaba Script Executable
+        if: matrix.config.target == 'linux-amd64' || matrix.config.os == 'ubuntu-latest'
+        run: |
+          chmod +x ${{ github.workspace }}/sunaba
 
       - name: Update Shared Libraries (Windows Target)
         if: matrix.config.target == 'windows-amd64'
