@@ -22,6 +22,7 @@ import sunaba.ui.Control;
 import sunaba.WindowMode;
 import sunaba.core.Element;
 import sunaba.desktop.Window;
+import sunaba.InfoD;
 
 class Player extends Widget {
     var subViewport: SubViewport;
@@ -104,9 +105,10 @@ class Player extends Widget {
         helpMenu.idPressed.connect((args: ArrayList) -> {
             var id = args.get(0).toInt();
             if (id == (helpMenu.itemCount - 1) && PlatformService.osName != "macOS") {
-                var scaleFactor = aboutDialog.contentScaleFactor;
-                var scaleFactorInt = Math.round(scaleFactor);
-                aboutDialog.popupCentered(new Vector2i(300 * scaleFactorInt, 123 * scaleFactorInt));
+                //var scaleFactor = aboutDialog.contentScaleFactor;
+                //var scaleFactorInt = Math.round(scaleFactor);
+                //aboutDialog.popupCentered(new Vector2i(300 * scaleFactorInt, 123 * scaleFactorInt));
+                showAboutDialog();
             }
             else if (id == 0) {
                 var res = PlatformService.shellOpen("https://docs.sunaba.gg");
@@ -167,6 +169,31 @@ class Player extends Widget {
         dialog.dialogText = aboutString;
     }
 
+    function showAboutDialog() {
+        var aboutString = "Sunaba Studio\n";
+        aboutString += "Version 0.7.0\n";
+        aboutString += "(C) 2022-2025 mintkat\n";
+        aboutString += "\n";
+
+        aboutString += "OS: " + PlatformService.osName + "\n";
+        var deviceTypeStr = "Unknown";
+        if (PlatformService.deviceType == DeviceType.desktop) {
+            deviceTypeStr = "Desktop";
+        }
+        else if (PlatformService.deviceType == DeviceType.mobile) {
+            deviceTypeStr = "Mobile";
+        }
+        else if (PlatformService.deviceType == DeviceType.web) {
+            deviceTypeStr = "Web";
+        }
+        else if (PlatformService.deviceType == DeviceType.xr) {
+            deviceTypeStr = "XR";
+        }
+        aboutString += "Device Type: " + deviceTypeStr + "\n";
+
+        InfoD(aboutString, "About");
+    }
+
     function input(inpueEvent: InputEvent) {
         if (PlatformService.osName != "macOS") {
             if (InputService.isKeyLabelPressed(Key.ctrl) && InputService.isKeyLabelPressed(Key.f1)) {
@@ -224,9 +251,10 @@ class Player extends Widget {
 
     function notification(what: Int) {
         if (what == 2011) {
-            var scaleFactor = aboutDialog.contentScaleFactor;
-            var scaleFactorInt = Math.round(scaleFactor);
-            aboutDialog.popupCentered(new Vector2i(300 * scaleFactorInt, 123 * scaleFactorInt));
+            //var scaleFactor = aboutDialog.contentScaleFactor;
+            //var scaleFactorInt = Math.round(scaleFactor);
+            //aboutDialog.popupCentered(new Vector2i(300 * scaleFactorInt, 123 * scaleFactorInt));
+            showAboutDialog();
         }
     }
 }
