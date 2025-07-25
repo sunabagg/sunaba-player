@@ -305,7 +305,9 @@ class Main {
         var cwdDebianFilesPath = cwd + "debian_files/";
 
         File.copy(cwdDebianFilesPath + "control", debDebianPath + "control");
-        //File.copy(cwdDebianFilesPath + "postinst", debDebianPath + "postinst");
+        Sys.command("chmod 644 " + debDebianPath + "control");
+        File.copy(cwdDebianFilesPath + "postinst", debDebianPath + "postinst");
+        Sys.command("chmod 755 " + debDebianPath + "postinst");
         //File.copy(cwdDebianFilesPath + "preinst", debDebianPath + "preinst");
         //File.copy(cwdDebianFilesPath + "changelog", debDebianPath + "changelog");
         File.copy(cwd + "LICENSE", debDebianPath + "copyright");
