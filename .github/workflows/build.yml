@@ -87,7 +87,9 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.config.target }}-${{ matrix.build_type }}
           path: |
-            ${{ github.workspace }}/bin/*
+            ${{ github.workspace }}/bin/*.exe
+            ${{ github.workspace }}/bin/*.zip
+            ${{ github.workspace }}/bin/*.deb
       
       - name: Upload macOS artifact
         if: matrix.config.os == 'macos-latest'
