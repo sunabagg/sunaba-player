@@ -170,7 +170,7 @@ class Player extends Widget {
     }
 
     function showAboutDialog() {
-        var aboutString = "Sunaba Studio\n";
+        var aboutString = "Sunaba Player\n";
         aboutString += "Version 0.7.0\n";
         aboutString += "(C) 2022-2025 mintkat\n";
         aboutString += "\n";
