@@ -18,8 +18,8 @@ jobs:
         build_type: ['debug', 'release']
         config:
           - { name: '🍏 macOS', target: mac-universal, os: macos-latest, pkgformat: dmg }
-          - { name: '🐧 Linux', target: linux-amd64, os: ubuntu-latest, pkgformat: deb }
-          - { name: '🪟 Windows', target: windows-amd64, os: ubuntu-latest, pkgformat: nsis }
+          - { name: '🐧 Linux', target: linux-amd64, os: blacksmith-2vcpu-ubuntu-2204, pkgformat: deb }
+          - { name: '🪟 Windows', target: windows-amd64, os: blacksmith-2vcpu-ubuntu-2204, pkgformat: nsis }
 
     name: 🛠 Build / ${{ matrix.config.name }} (${{ matrix.build_type }})
     runs-on: ${{ matrix.config.os }}
