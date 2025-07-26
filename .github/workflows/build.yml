@@ -74,9 +74,9 @@ jobs:
       - name: Install Haxelib Dependencies
         run: |
           haxelib install hxnodejs
-          haxelib dev tsukuru ${{ github.workspace }}/sunaba/tsukuru
-          haxelib dev sunaba ${{ github.workspace }}/sunaba
-      
+          haxelib git tsukuru git@github.com:sunabagg/tsukuru.git
+          haxelib git sunaba git@github.com:sunabagg/sunaba.git
+
       - name: Update Shared Libraries
         run: |
           ${{ github.workspace }}/build.sh update
