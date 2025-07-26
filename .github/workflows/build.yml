@@ -28,9 +28,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           lfs: true
 
+      - name: Checkout sunaba
+        uses: actions/checkout@v4
+        with:
+          repository: sunabagg/sunaba
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: sunaba
+          lfs: true
+      
+      - name: Checkout tsukuru
+        uses: actions/checkout@v4
+        with:
+          repository: sunabagg/tsukuru
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: sunaba
+      
       - name: Setup Godot
         uses: lihop/setup-godot@v2
         with:
