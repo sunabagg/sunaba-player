@@ -18,7 +18,7 @@ jobs:
         build_type: ['debug', 'release']
         config:
           #- { name: '🍏 macOS', target: mac-universal, os: macos-latest, pkgformat: dmg }
-          #- { name: '🐧 Linux', target: linux-amd64, os: ubuntu-latest, pkgformat: deb }
+          - { name: '🐧 Linux', target: linux-amd64, os: ubuntu-latest, pkgformat: deb }
           - { name: '🪟 Windows', target: windows-amd64, os: ubuntu-latest, pkgformat: nsis }
 
     name: 🛠 Build / ${{ matrix.config.name }} (${{ matrix.build_type }})
