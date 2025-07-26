@@ -13,7 +13,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         build_type: ['debug', 'release']
         config:
@@ -74,7 +74,7 @@ jobs:
       - name: Install Haxelib Dependencies
         run: |
           haxelib install hxnodejs
-          haxelib dev tsukuru ${{ github.workspace }}/sunaba/tsukuru
+          haxelib dev tsukuru ${{ github.workspace }}/tsukuru
           haxelib dev sunaba ${{ github.workspace }}/sunaba
       
       - name: Update Shared Libraries
