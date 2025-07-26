@@ -11,6 +11,13 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
