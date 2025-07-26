@@ -1,9 +1,9 @@
 name: Build
 on:
-  #push:
-  #  paths-ignore:
-  #    - '.gitignore'
-  #    - '*.md'
+  push:
+    paths-ignore:
+      - '.gitignore'
+      - '*.md'
   
   schedule:
     - cron: '0 9 * * *' # run at 9 AM UTC/ 1 AM AKDT
@@ -60,8 +60,8 @@ jobs:
       - name: Install Haxelib Dependencies
         run: |
           haxelib install hxnodejs
-          haxelib git tsukuru https://github.com/sunabagg/tsukuru.git
-          haxelib git sunaba https://github.com/sunabagg/sunaba.git
+          haxelib git tsukuru git@github.com:sunabagg/tsukuru.git
+          haxelib git sunaba git@github.com:sunabagg/sunaba.git
 
       - name: Update Shared Libraries
         run: |
