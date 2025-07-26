@@ -17,7 +17,7 @@ jobs:
       matrix:
         build_type: ['debug', 'release']
         config:
-          #- { name: '🍏 macOS', target: mac-universal, os: macos-latest, pkgformat: dmg }
+          - { name: '🍏 macOS', target: mac-universal, os: macos-latest, pkgformat: dmg }
           - { name: '🐧 Linux', target: linux-amd64, os: ubuntu-latest, pkgformat: deb }
           - { name: '🪟 Windows', target: windows-amd64, os: ubuntu-latest, pkgformat: nsis }
 
@@ -27,9 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          lfs: true
 
       - name: Setup Godot
         uses: lihop/setup-godot@v2
