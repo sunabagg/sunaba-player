@@ -43,7 +43,7 @@ jobs:
         with:
           repository: sunabagg/tsukuru
           token: ${{ secrets.GITHUB_TOKEN }}
-          path: sunaba
+          path: tsukuru
       
       - name: Setup Godot
         uses: lihop/setup-godot@v2
